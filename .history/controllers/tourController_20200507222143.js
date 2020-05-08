@@ -186,17 +186,9 @@ exports.getMonthlyPlan = async (req, res) => {
       },
       {
         // Oculto campo
-        $project: {
+        $proyect: {
           _id: 0,
         },
-      },
-      {
-        // Order By . 1:ASC -1:DESC
-        $sort: { numTourStarts: -1 }, // order by numTourStarts DESC
-      },
-      {
-        // LIMIT 12
-        $limit: 12,
       },
     ]);
 

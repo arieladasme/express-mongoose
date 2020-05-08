@@ -8,7 +8,6 @@ const {
   deleteTour,
   aliasTopTours,
   getToursStats,
-  getMonthlyPlan,
 } = require('../controllers/tourController');
 
 const router = express.Router();

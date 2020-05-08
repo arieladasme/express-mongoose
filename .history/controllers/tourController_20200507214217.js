@@ -153,52 +153,11 @@ exports.getToursStats = async (req, res) => {
   }
 };
 
-/**
- * Buscar mes mas ocupado de un año determinado
- */
 exports.getMonthlyPlan = async (req, res) => {
   try {
-    const year = req.params.year * 1; // 2021
+    const year = req.params.year * 1;
 
-    const plan = await Tour.aggregate([
-      {
-        $unwind: '$startDates', // Genera 1 documento por cada startDates
-      },
-      {
-        $match: {
-          startDates: {
-            $gte: new Date(`${year}-01-01`), // $gte: >=
-            $lte: new Date(`${year}-12-31`), // $lte: <=
-          },
-        },
-      },
-      {
-        // group by month
-        $group: {
-          _id: { $month: '$startDates' }, // month (number)
-          numTourStarts: { $sum: 1 }, // count(*)
-          tours: { $push: '$name' }, // $push: agrega nombres encontrados
-        },
-      },
-      {
-        // $addFields: Agrega campos
-        $addFields: { month: '$_id' }, // creo campo month con el dato de _id
-      },
-      {
-        // Oculto campo
-        $project: {
-          _id: 0,
-        },
-      },
-      {
-        // Order By . 1:ASC -1:DESC
-        $sort: { numTourStarts: -1 }, // order by numTourStarts DESC
-      },
-      {
-        // LIMIT 12
-        $limit: 12,
-      },
-    ]);
+    const plan = await Tour.aggregate([]);
 
     res.status(200).json({
       status: 'success',
