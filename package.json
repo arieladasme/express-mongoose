@@ -25,5 +25,8 @@
     "mongoose": "^5.9.11",
     "morgan": "^1.10.0",
     "slugify": "^1.4.0"
+  },
+  "devDependencies": {
+    "prettier": "2.0.5"
   }
 }

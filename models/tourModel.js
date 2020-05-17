@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const slugify = require('slugify');
+const mongoose = require('mongoose')
+const slugify = require('slugify')
 
 const tourSchema = new mongoose.Schema(
   {
@@ -64,20 +64,20 @@ const tourSchema = new mongoose.Schema(
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
-);
+)
 
 // Duracion de recorrido en semanas
 tourSchema.virtual('durationWeeks').get(function () {
-  return this.duration / 7;
-});
+  return this.duration / 7
+})
 
 // Document Middleware: se ejecuta antes de comando save y el create
 // con esto tenemos acceso al documento que se esta procesando(creando)
 // this: es el documento procesado actualmente
 tourSchema.pre('save', function (next) {
-  this.slug = slugify(this.name, { lower: true });
-  next();
-});
+  this.slug = slugify(this.name, { lower: true })
+  next()
+})
 
 /* 
 // pre save middlewar
@@ -99,17 +99,30 @@ tourSchema.post('save', function (doc, next) {
 //tourSchema.pre('find', function (next) {
 // ejectutaEnTodosLosFind /^find/
 tourSchema.pre(/^find/, function (next) {
-  this.find({ secretTour: { $ne: true } }); // $ne: no es igual a true
+  this.find({ secretTour: { $ne: true } }) // $ne: no es igual a true
 
-  this.start = Date.now();
-  next();
-});
+  this.start = Date.now()
+  next()
+})
 
+// /^find/ aplica a todas las cadenas(strings) los que empiecen con find
+// .post() se ejecutara despues de realizar una consulta
 tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} miliseconds!`);
+  console.log(`Query took ${Date.now() - this.start} miliseconds!`)
   //console.log(docs);
-  next();
-});
+  next()
+})
 
-const Tour = mongoose.model('Tour', tourSchema);
-module.exports = Tour;
+/*
+ * AGGREGATION MIDDLEWARE
+ */
+tourSchema.pre('aggregate', function (next) {
+  // unshift() agrega esto al inicio del array
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+  console.log(this.pipeline())
+
+  next()
+})
+
+const Tour = mongoose.model('Tour', tourSchema)
+module.exports = Tour
