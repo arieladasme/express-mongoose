@@ -1,16 +1,16 @@
-const Tour = require('./../models/tourModel');
-const APIFeatures = require('./../utils/apifeatures');
+const Tour = require('./../models/tourModel')
+const APIFeatures = require('./../utils/apifeatures')
 
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 // );
 
 exports.aliasTopTours = async (req, res, next) => {
-  req.query.limit = '5';
-  req.query.sort = '-ratingsAverage,price';
-  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
-  next();
-};
+  req.query.limit = '5'
+  req.query.sort = '-ratingsAverage,price'
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty'
+  next()
+}
 
 exports.getAllTours = async (req, res) => {
   try {
@@ -21,8 +21,8 @@ exports.getAllTours = async (req, res) => {
       .filter()
       .sort()
       .limitFields()
-      .paginate();
-    const tours = await features.query;
+      .paginate()
+    const tours = await features.query
 
     // SEBD RESPONSE
     res.status(200).json({
@@ -31,88 +31,88 @@ exports.getAllTours = async (req, res) => {
       data: {
         tours,
       },
-    });
+    })
   } catch (err) {
     res.status(404).json({
       status: 'fail',
       message: err,
-    });
+    })
   }
-};
+}
 
 exports.getTour = async (req, res) => {
   try {
-    const tour = await Tour.findById(req.params.id);
+    const tour = await Tour.findById(req.params.id)
     res.status(200).json({
       status: 'success',
       data: {
         tour,
       },
-    });
+    })
   } catch (error) {
     res.status(404).json({
       status: 'fail',
       message: err,
-    });
+    })
   }
-};
+}
 
 exports.createTour = async (req, res) => {
   //const newTour = new Tour({})
   //newTour.save()
 
   try {
-    const newTour = await Tour.create(req.body);
+    const newTour = await Tour.create(req.body)
 
     res.status(201).json({
       status: 'success',
       data: {
         tour: newTour,
       },
-    });
+    })
   } catch (err) {
     res.status(400).json({
       status: 'fail',
       message: err,
-    });
+    })
   }
-};
+}
 
 exports.updateTour = async (req, res) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    });
+    })
 
     res.status(200).json({
       status: 'success',
       data: {
         tour,
       },
-    });
+    })
   } catch (error) {
     res.status(404).json({
       status: 'fail',
       message: error,
-    });
+    })
   }
-};
+}
 
 exports.deleteTour = async (req, res) => {
   try {
-    await Tour.findByIdAndDelete(req.params.id);
+    await Tour.findByIdAndDelete(req.params.id)
     res.status(204).json({
       status: 'success',
       data: null,
-    });
+    })
   } catch (error) {
     res.status(404).json({
       status: 'fail',
       message: error,
-    });
+    })
   }
-};
+}
 
 exports.getToursStats = async (req, res) => {
   try {
@@ -137,28 +137,28 @@ exports.getToursStats = async (req, res) => {
       //{
       //  $match: { _id: { $ne: 'EASY' } },
       //},
-    ]);
+    ])
 
     res.status(200).json({
       status: 'success',
       data: {
         stats,
       },
-    });
+    })
   } catch (error) {
     res.status(404).json({
       status: 'fail',
       message: error,
-    });
+    })
   }
-};
+}
 
 /**
  * Buscar mes mas ocupado de un año determinado
  */
 exports.getMonthlyPlan = async (req, res) => {
   try {
-    const year = req.params.year * 1; // 2021
+    const year = req.params.year * 1 // 2021
 
     const plan = await Tour.aggregate([
       {
@@ -198,18 +198,18 @@ exports.getMonthlyPlan = async (req, res) => {
         // LIMIT 12
         $limit: 12,
       },
-    ]);
+    ])
 
     res.status(200).json({
       status: 'success',
       data: {
         plan,
       },
-    });
+    })
   } catch (error) {
     res.status(404).json({
       status: 'fail',
       message: error,
-    });
+    })
   }
-};
+}
