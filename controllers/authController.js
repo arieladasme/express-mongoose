@@ -59,3 +59,35 @@ exports.login = catchAsync(async (req, res, next) => {
     token,
   })
 })
+
+exports.protect = catchAsync(async (req, res, next) => {
+  /*
+   * GETTING TOKEN AND CHECK OF ITS THERE
+   */
+  let token
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    // consigo el token dividiendo co split
+    token = req.headers.authorization.split(' ')[1]
+  }
+  console.log(token)
+
+  if (!token) {
+    return next(new AppError('Your are not logged in, please login', 401))
+  }
+  /*
+   * VERIFICATION TOKEN
+   */
+
+  /*
+   * CHECK IF USER STILL EXISTS
+   */
+
+  /*
+   * CHECK IF USER CHANGED PW AFTER THE TOKEN WAS ISSUED
+   */
+
+  next()
+})
