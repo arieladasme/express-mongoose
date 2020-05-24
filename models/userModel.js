@@ -8,12 +8,11 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Must have a name'],
-    unique: true,
   },
   email: {
     type: String,
-    required: [true, 'Must have email'],
     unique: true,
+    required: [true, 'Must have email'],
     lowercase: true,
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
@@ -35,6 +34,7 @@ const userSchema = new mongoose.Schema({
       message: 'Password are not the same!',
     },
   },
+  passwordChangeAt: { type: Date },
 })
 
 // Encriptar pw
@@ -55,6 +55,20 @@ userSchema.methods.correctPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword)
+}
+
+// la palabra this apunta al documento actual
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  // si no existe el campo es porque nunca ha cambiado pw
+  if (this.passwordChangeAt) {
+    const changedTimestamp = parseInt(this.passwordChangeAt.getTime()/1000, 10)
+
+    console.log(changedTimestamp, JWTTimestamp)
+    return JWTTimestamp < changedTimestamp
+  }
+
+  // false means NOT changes
+  return false
 }
 
 const User = mongoose.model('User', userSchema)
