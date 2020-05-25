@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
   photo: String,
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, 'Must have a pw'],
@@ -61,7 +66,10 @@ userSchema.methods.correctPassword = async function (
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   // si no existe el campo es porque nunca ha cambiado pw
   if (this.passwordChangeAt) {
-    const changedTimestamp = parseInt(this.passwordChangeAt.getTime()/1000, 10)
+    const changedTimestamp = parseInt(
+      this.passwordChangeAt.getTime() / 1000,
+      10
+    )
 
     console.log(changedTimestamp, JWTTimestamp)
     return JWTTimestamp < changedTimestamp

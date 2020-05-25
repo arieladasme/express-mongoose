@@ -16,6 +16,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
+    role: req.body.role,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     passwordChangeAt: req.body.passwordChangeAt,
@@ -96,11 +97,24 @@ exports.protect = catchAsync(async (req, res, next) => {
   /*
    * CHECK IF USER CHANGED PW AFTER THE TOKEN WAS ISSUED
    */
-  if(currentUser.changedPasswordAfter(decoded.iat)){
-    return next(new AppError('User recently changed password, please login again', 401))
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password, please login again', 401)
+    )
   }
 
   // GRANT ACCES TO PROCTECTED ROUTE
   req.user = currentUser
   next()
 })
+
+exports.restrictTo = (...role) => {
+  return (req, res, next) => {
+    // roles ['admin', 'lead-guide']. role='user' - 403: Prohibido
+    if (!role.includes(req.user.role)) {
+      return next(new AppError('Not permission to perform this action', 403))
+    }
+
+    next()
+  }
+}
