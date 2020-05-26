@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
@@ -40,6 +41,8 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangeAt: { type: Date },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 })
 
 // Encriptar pw
@@ -77,6 +80,22 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 
   // false means NOT changes
   return false
+}
+
+userSchema.methods.createPasswordResetToken = function () {
+  // Creo un token random de 32 caracteres y lo codifico a hexadecimal
+  const resetToken = crypto.randomBytes(32).toString('hex')
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex')
+
+  console.log({ resetToken }, this.passwordResetToken)
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000 // milisec
+
+  return resetToken
 }
 
 const User = mongoose.model('User', userSchema)

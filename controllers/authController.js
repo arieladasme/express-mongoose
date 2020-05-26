@@ -20,6 +20,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
     passwordChangeAt: req.body.passwordChangeAt,
+    passwordResetToken: req.body.passwordResetToken,
+    passwordResetExpires: req.body.passwordResetExpires,
   })
 
   const token = signToken(newUser._id)
@@ -118,3 +120,24 @@ exports.restrictTo = (...role) => {
     next()
   }
 }
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  /*
+   * GET USER BASED ON POSTed EMAIL
+   */
+  const user = await User.findOne({ email: req.body.email })
+  if (!user) {
+    return next(new AppError('There is no user with this email', 404))
+  }
+  /*
+   * GENERATE THE RANDOM RESET TOKEN
+   */
+  const resToken = user.createPasswordResetToken()
+  // validateBeforeSave: false -> Desactiva los validadores del schema
+  await user.save({ validateBeforeSave: false })
+
+  /*
+   * SEND IT TO USER'S EMAIL
+   */
+})
+exports.resetPassword = (req, res, next) => {}
