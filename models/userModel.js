@@ -58,10 +58,15 @@ userSchema.pre('save', async function (next) {
   next()
 })
 
-userSchema.methods.correctPassword = async function (
-  candidatePassword,
-  userPassword
-) {
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next()
+
+  // se resta 1 seg ya que el guardar en la db se demora mas que generar un token
+  this.passwordChangeAt = Date.now() - 1000
+  next()
+})
+
+userSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword)
 }
 
@@ -69,10 +74,7 @@ userSchema.methods.correctPassword = async function (
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   // si no existe el campo es porque nunca ha cambiado pw
   if (this.passwordChangeAt) {
-    const changedTimestamp = parseInt(
-      this.passwordChangeAt.getTime() / 1000,
-      10
-    )
+    const changedTimestamp = parseInt(this.passwordChangeAt.getTime() / 1000, 10)
 
     console.log(changedTimestamp, JWTTimestamp)
     return JWTTimestamp < changedTimestamp
@@ -86,10 +88,7 @@ userSchema.methods.createPasswordResetToken = function () {
   // Creo un token random de 32 caracteres y lo codifico a hexadecimal
   const resetToken = crypto.randomBytes(32).toString('hex')
 
-  this.passwordResetToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex')
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
 
   console.log({ resetToken }, this.passwordResetToken)
 
