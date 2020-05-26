@@ -6,10 +6,7 @@ const bcrypt = require('bcryptjs')
 // name email photo password passwordConfim
 
 const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Must have a name'],
-  },
+  name: { type: String, required: [true, 'Must have a name'] },
   email: {
     type: String,
     unique: true,
@@ -43,6 +40,11 @@ const userSchema = new mongoose.Schema({
   passwordChangeAt: { type: Date },
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 })
 
 // Encriptar pw
@@ -63,6 +65,12 @@ userSchema.pre('save', function (next) {
 
   // se resta 1 seg ya que el guardar en la db se demora mas que generar un token
   this.passwordChangeAt = Date.now() - 1000
+  next()
+})
+
+// filtro usuarios inactivos
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } }) // != false
   next()
 })
 
