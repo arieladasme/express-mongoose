@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 const User = require('./../models/userModel')
 const catchAsync = require('./../utils/catchAsync')
 const AppError = require('./../utils/appError')
+const sendEmail = require('./../utils/email')
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -70,10 +71,7 @@ exports.protect = catchAsync(async (req, res, next) => {
    * GETTING TOKEN AND CHECK OF ITS THERE
    */
   let token
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     // consigo el token dividiendo co split
     token = req.headers.authorization.split(' ')[1]
   }
@@ -92,17 +90,13 @@ exports.protect = catchAsync(async (req, res, next) => {
    */
   const currentUser = await User.findById(decoded.id)
   if (!currentUser) {
-    return next(
-      new AppError('The user belonging to this token does no longer exist', 401)
-    )
+    return next(new AppError('The user belonging to this token does no longer exist', 401))
   }
   /*
    * CHECK IF USER CHANGED PW AFTER THE TOKEN WAS ISSUED
    */
   if (currentUser.changedPasswordAfter(decoded.iat)) {
-    return next(
-      new AppError('User recently changed password, please login again', 401)
-    )
+    return next(new AppError('User recently changed password, please login again', 401))
   }
 
   // GRANT ACCES TO PROCTECTED ROUTE
@@ -132,12 +126,35 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   /*
    * GENERATE THE RANDOM RESET TOKEN
    */
-  const resToken = user.createPasswordResetToken()
+  const resetToken = user.createPasswordResetToken()
   // validateBeforeSave: false -> Desactiva los validadores del schema
   await user.save({ validateBeforeSave: false })
 
   /*
    * SEND IT TO USER'S EMAIL
    */
+
+  const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`
+  const message = `Forgot your pw? Submit a PATCH request whit your new password and passwordConfirm to : ${resetURL}. \nIf you didn't forget your pw, please ignore this email`
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your pw reset token (valid for 10 min)',
+      message,
+    })
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Token sent to email',
+    })
+  } catch (err) {
+    user.passwordResetToken = undefined
+    user.passwordResetExpires = undefined
+    await user.save({ validateBeforeSave: false })
+
+    // 500: error que sucedio por el lado del servidor
+    return next(new AppError('There was an error sending the email. try again', 500))
+  }
 })
 exports.resetPassword = (req, res, next) => {}
