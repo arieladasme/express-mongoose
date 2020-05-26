@@ -12,6 +12,16 @@ const signToken = (id) => {
   })
 }
 
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id)
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: { user },
+  })
+}
+
 exports.signup = catchAsync(async (req, res, next) => {
   //const newUser = await User.create(req.body)
 
@@ -26,14 +36,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordResetExpires: req.body.passwordResetExpires,
   })
 
-  const token = signToken(newUser._id)
-
-  // 201: creado
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: { user: newUser },
-  })
+  createSendToken(newUser, 201, res)
 })
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -60,11 +63,7 @@ exports.login = catchAsync(async (req, res, next) => {
   /*
    * IF EVERYTHING OK, SEND TOKEN TO CLIENT
    */
-  const token = signToken(user._id)
-  res.status(200).json({
-    status: 'success',
-    token,
-  })
+  createSendToken(user, 200, res)
 })
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -186,9 +185,34 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   /*
    * LOG THE USER IN, SEND JWT
    */
-  const token = signToken(user._id)
-  res.status(200).json({
-    status: 'success',
-    token,
-  })
+  createSendToken(user, 200, res)
 })
+
+exports.updatePassword = async (req, res, next) => {
+  /*
+   * GET USER FROM COLLECTION
+   */
+  // por default password no esta incluido en la salida con +password de agrega
+  const user = await User.findById(req.user.id).select('+password')
+
+  /*
+   * CHECK IF POSTED CURRENT PW IS CORRECT
+   */
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Password incorrect', 401))
+  }
+
+  /*
+   * IF SO, UPDATE PW
+   */
+
+  user.password = req.body.password
+  user.passwordConfirm = req.body.passwordConfirm
+  //user.passwordChangeAt = Date.now()
+  await user.save()
+
+  /*
+   * LOG USER IN, SEND JWT
+   */
+  createSendToken(user, 200, res)
+}
