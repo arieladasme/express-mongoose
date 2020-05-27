@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const slugify = require('slugify')
+const User = require('./userModel')
 
 const tourSchema = new mongoose.Schema(
   {
@@ -103,6 +104,7 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
+    guides: Array,
   },
   {
     toJSON: { virtuals: true },
@@ -120,6 +122,13 @@ tourSchema.virtual('durationWeeks').get(function () {
 // this: es el documento procesado actualmente
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true })
+  next()
+})
+
+tourSchema.pre('save', async function (next) {
+  const guidesPromises = this.guides.map(async (id) => await User.findById(id))
+  this.guides = await Promise.all(guidesPromises)
+  // Promise.all() se aplica ya que this.guides.map trae un conjunto de promises
   next()
 })
 
@@ -152,7 +161,7 @@ tourSchema.pre(/^find/, function (next) {
 // /^find/ aplica a todas las cadenas(strings) los que empiecen con find
 // .post() se ejecutara despues de realizar una consulta
 tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} miliseconds!`)
+  console.log(`Query took ${Date.now() - this.start} milliseconds!`)
   //console.log(docs);
   next()
 })
