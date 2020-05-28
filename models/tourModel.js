@@ -163,6 +163,15 @@ tourSchema.pre(/^find/, function (next) {
   next()
 })
 
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  })
+
+  next()
+})
+
 // /^find/ aplica a todas las cadenas(strings) los que empiecen con find
 // .post() se ejecutara despues de realizar una consulta
 tourSchema.post(/^find/, function (docs, next) {

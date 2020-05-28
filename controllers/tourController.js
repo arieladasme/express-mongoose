@@ -16,11 +16,7 @@ exports.aliasTopTours = async (req, res, next) => {
 
 exports.getAllTours = catchAsync(async (req, res, next) => {
   // EXECUTE QUERY
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate()
+  const features = new APIFeatures(Tour.find(), req.query).filter().sort().limitFields().paginate()
   const tours = await features.query
 
   // SEBD RESPONSE
