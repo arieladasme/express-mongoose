@@ -122,6 +122,13 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7
 })
 
+// Virtual Populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+})
+
 // Document Middleware: se ejecuta antes de comando save y el create
 // con esto tenemos acceso al documento que se esta procesando(creando)
 // this: es el documento procesado actualmente
