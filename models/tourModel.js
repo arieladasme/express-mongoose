@@ -175,7 +175,7 @@ tourSchema.pre(/^find/, function (next) {
 // /^find/ aplica a todas las cadenas(strings) los que empiecen con find
 // .post() se ejecutara despues de realizar una consulta
 tourSchema.post(/^find/, function (docs, next) {
-  console.log(`Query took ${Date.now() - this.start} milliseconds!`)
+  //console.log(`Query took ${Date.now() - this.start} milliseconds!`)
   //console.log(docs);
   next()
 })
@@ -186,7 +186,7 @@ tourSchema.post(/^find/, function (docs, next) {
 tourSchema.pre('aggregate', function (next) {
   // unshift() agrega esto al inicio del array
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
-  console.log(this.pipeline())
+  //console.log(this.pipeline())
 
   next()
 })
