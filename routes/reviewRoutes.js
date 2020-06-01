@@ -12,7 +12,13 @@ const {
 
 const router = express.Router({ mergeParams: true })
 
-router.route('/').post(protect, restrictTo('user'), setTourUserIds, createReview).get(getAllReviews)
-router.route('/:id').get(getReview).patch(updateReview).delete(deleteReview)
+router.use(protect)
+
+router.route('/').post(restrictTo('user'), setTourUserIds, createReview).get(getAllReviews)
+router
+  .route('/:id')
+  .get(getReview)
+  .patch(restrictTo('user', 'admin'), updateReview)
+  .delete(restrictTo('user', 'admin'), deleteReview)
 
 module.exports = router
