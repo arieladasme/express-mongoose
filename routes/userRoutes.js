@@ -7,6 +7,7 @@ const {
   deleteUser,
   updateMe,
   deleteMe,
+  getMe,
 } = require('./../controllers/userController')
 const {
   signup,
@@ -19,6 +20,7 @@ const {
 
 const router = express.Router()
 
+router.get('/me', protect, getMe, getUser)
 router.post('/signup', signup)
 router.post('/login', login)
 
