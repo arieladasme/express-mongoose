@@ -1,6 +1,6 @@
 const Tour = require('./../models/tourModel')
 const catchAsync = require('./../utils/catchAsync')
-//const AppError = require('./../utils/appError')
+const AppError = require('./../utils/appError')
 const factory = require('./handlerFactory')
 
 // const tours = JSON.parse(
@@ -103,5 +103,35 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     data: {
       plan,
     },
+  })
+})
+
+// /tours-within/:distance/center/:latlng/unit/:unit
+// /tours-within/234/center/-40,45/unit/mi
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params
+  const [lat, lng] = latlng.split(',') // divido string por ","
+
+  // Distance to Radian
+  // if unit = 'mi' calculo millas, if unit = 'km' calculo kilometros
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1
+
+  if (!lat || !lng) {
+    next(new AppError('Please provide latitude and longitude in the format lat,lng', 400))
+  }
+  console.log(distance, lat, lng, unit)
+
+  const tours = await Tour.find({
+    startLocation: {
+      $geoWithin: {
+        $centerSphere: [[lng, lat], radius],
+      },
+    },
+  })
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: { data: tours },
   })
 })

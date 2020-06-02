@@ -121,6 +121,8 @@ const tourSchema = new mongoose.Schema(
 
 tourSchema.index({ price: 1, ratingsAverage: -1 })
 tourSchema.index({ slug: 1 })
+// Indico que la ubicacion debe indexarse a una esfera 2D
+tourSchema.index({ startLocation: '2dsphere' })
 
 // Duracion de recorrido en semanas
 tourSchema.virtual('durationWeeks').get(function () {
