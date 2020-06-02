@@ -25,6 +25,9 @@ const reviewSchema = new mongoose.Schema(
   }
 )
 
+// Evito reviews duplicados; tour y user deben ser unicos
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true })
+
 /**
  * QUERY MIDDLEWARE
  */
@@ -64,13 +67,13 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
   // if not reviews
   if (stats.length > 0) {
     await Tour.findByIdAndUpdate(tourId, {
-      ratingsAverage: stats[0].nRating,
-      ratingsQuantity: stats[0].avgRating,
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
     })
   } else {
     await Tour.findByIdAndUpdate(tourId, {
-      ratingsAverage: 0,
-      ratingsQuantity: 4.5,
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
     })
   }
 }
