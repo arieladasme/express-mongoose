@@ -112,6 +112,9 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
   const { distance, latlng, unit } = req.params
   const [lat, lng] = latlng.split(',') // divido string por ","
 
+  /**
+   * Busco tours en un determinado rango
+   */
   // Distance to Radian
   // if unit = 'mi' calculo millas, if unit = 'km' calculo kilometros
   const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1
@@ -133,5 +136,42 @@ exports.getToursWithin = catchAsync(async (req, res, next) => {
     status: 'success',
     results: tours.length,
     data: { data: tours },
+  })
+})
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params
+  const [lat, lng] = latlng.split(',') // divido string por ","
+
+  // Si es millas paso a kilometro-si es metro paso a kilometro
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001
+
+  if (!lat || !lng) {
+    next(new AppError('Please provide latitude and longitude in the format lat,lng', 400))
+  }
+
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1], //*1 para pasar a numero
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier, //lo mismo que dividir x 1000
+      },
+    },
+    {
+      $project: {
+        // indico campos a mostrar
+        distance: 1,
+        name: 1,
+      },
+    },
+  ])
+
+  res.status(200).json({
+    status: 'success',
+    data: { data: distances },
   })
 })
